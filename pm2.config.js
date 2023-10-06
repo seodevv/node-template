@@ -1,6 +1,6 @@
 module.exports = {
   apps: {
-    name: 'tikitaka',
+    name: 'template',
     script: './server.js',
     instances: 3,
     exec_mode: 'cluster',

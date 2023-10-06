@@ -1,7 +1,10 @@
 # folder
 node_modules/
 .cert/
+.vscode/
+.logs/*
 
 # env file
 .env
+.gitignore
 vapidKeys.json
