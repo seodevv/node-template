@@ -3,35 +3,36 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const http = require('http');
-// const https = require('https');
+const https = require('https');
 const cors = require('cors');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
 
-const server = http.createServer(app);
-// const server = https.createServer(
-//   {
-//     key: fs.readFileSync(__dirname + '/.cert/key.pem', 'utf-8'),
-//     cert: fs.readFileSync(__dirname + '/.cert/cert.pem', 'utf-8'),
-//   },
-//   app
-// );
+// const server = http.createServer(app);
+const server = https.createServer(
+  {
+    key: fs.readFileSync(__dirname + '/.cert/cert.key', 'utf-8'),
+    cert: fs.readFileSync(__dirname + '/.cert/cert.crt', 'utf-8'),
+  },
+  app
+);
 
 const logger = require('./lib/logger.js');
 const morgan = require('morgan');
+const { dbConnectionTest } = require('./lib/db.js');
 
 // cors policy config
 const corsOptions = {
-  origin: ['http://localhost:5500'],
+  origin: ['http://localhost:5500', 'https://localhost:5500'],
   methods: ['GET', 'POST', 'OPTIONS'],
   // transports: ['websocket'],
-  // credentials: true,
+  credentials: true,
 };
 
 // webSocket cors policy
-const io = require('socket.io')(server, {
-  cors: corsOptions,
-});
+// const io = require('socket.io')(server, {
+//   cors: corsOptions,
+// });
 
 app.use(cors(corsOptions));
 
@@ -49,7 +50,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // routing
-// app.use('/auth', require('./routes/auth/auth.js'));
+app.use('/get', require('./routes/api/get.js'));
+app.use('/post', require('./routes/api/post.js'));
+app.use('/auth', require('./routes/auth/oauth.js'));
 
 // litening the server
 const serverHost = process.env.SERVER_HOST || '0.0.0.0';
@@ -72,6 +75,8 @@ const serverPort = process.env.SERVER_PORT || 8080;
 //     logger.info(`litening on http://${serverHost}:${serverPort}`);
 //   });
 // }
-server.listen(serverPort, serverHost, () => {
-  logger.info(`litening on http://${serverHost}:${serverPort}`);
+
+server.listen(serverPort, serverHost, async () => {
+  await dbConnectionTest();
+  logger.info(`litening on https://${serverHost}:${serverPort}`);
 });
