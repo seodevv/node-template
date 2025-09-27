@@ -1,8 +1,9 @@
 # folder
 node_modules/
+logs/
 .cert/
 .vscode/
-.logs/*
+
 
 # env file
 .env

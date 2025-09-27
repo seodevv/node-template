@@ -1,26 +1,21 @@
 const { createResponse } = require('../../lib/common');
-const { insertEmailInfo } = require('../../lib/query/email');
-const { selectBasicInfo } = require('../../lib/query/oauth');
+const { insertWish } = require('../../lib/query/product');
 
 const router = require('express').Router();
 
 router.use('/mail', require('../mail/mail'));
+router.use('/product', require('../product/postProduct'));
+router.use('/my', require('../my/postMy'));
 
-const CryptoJS = require('crypto-js');
-router.post('/test', async (req, res) => {
-  const { id, password } = req.body;
+router.post('/wish', async (req, res) => {
+  const { userId, listId } = req.body;
+  if (!userId || !listId) return createResponse({ response: res, status: 400 });
 
   try {
-    const { value: secret } = await selectBasicInfo({
-      name: 'encrypt',
-      key: 'secret',
-    });
-
-    const encryptPassword = CryptoJS.AES.encrypt(password, secret).toString();
-    const data = insertEmailInfo({ id, password: encryptPassword });
-    createResponse({ response: res, data });
+    await insertWish({ userId, listId });
+    createResponse({ response: res });
   } catch (error) {
-    createResponse({ response: res, error, status: 500 });
+    createResponse({ response: res, status: 400, error });
   }
 });
 

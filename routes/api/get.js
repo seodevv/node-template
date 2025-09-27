@@ -4,6 +4,7 @@ const { createResponse } = require('../../lib/common');
 const { selectBasicInfo } = require('../../lib/query/oauth');
 
 router.use('/product', require('../product/getProduct'));
+router.use('/my', require('../my/getMy'));
 
 router.get('/secret', async (req, res) => {
   try {
@@ -17,7 +18,25 @@ router.get('/secret', async (req, res) => {
   }
 });
 
+router.get('/wish', async (req, res) => {
+  const { userId, listId } = req.query;
+  if (!userId || !listId) return createResponse({ response: res, status: 400 });
+  try {
+    const check = await selectWish({ userId, listId });
+    let data;
+    if (check.length === 0) {
+      data = { result: false };
+    } else {
+      data = { result: true };
+    }
+    createResponse({ response: res, data });
+  } catch (error) {
+    createResponse({ response: res, status: 500, error });
+  }
+});
+
 const axios = require('axios');
+const { selectWish } = require('../../lib/query/product');
 router.get('/insta/feeds', async (req, res) => {
   const { page = 0 } = req.query;
   const length = 12 * (Number(page) + 1);
@@ -56,12 +75,10 @@ router.get('/insta/feeds', async (req, res) => {
       }
     }
 
-    setTimeout(() => {
-      createResponse({
-        response: res,
-        data: { feeds: data.slice(0, length), isEnd },
-      });
-    }, 1000);
+    createResponse({
+      response: res,
+      data: { feeds: data.slice(0, length), isEnd },
+    });
   } catch (error) {
     console.error(error);
     createResponse({ response: res, error, status: 500 });
